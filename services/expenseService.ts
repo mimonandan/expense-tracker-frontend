@@ -1,6 +1,6 @@
-import { apiRequest } from "@/lib/api";
+import api from "@/lib/axios";
 
 export async function getExpenses() {
-  const res = await apiRequest("/expense");
-  return res.data;
+  const res = await api.get("/expense");
+  return res.data.data;
 }

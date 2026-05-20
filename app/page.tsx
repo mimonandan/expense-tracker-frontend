@@ -8,20 +8,42 @@ export default function Home() {
   const [expenses, setExpenses] = useState<any[]>([]);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
+  const token = localStorage.getItem("accessToken");
 
-    if (!token) {
-      window.location.href = "/login";
-      return;
-    }
+  console.log("HOME TOKEN:", token);
 
-    async function load() {
+  if (!token) {
+    window.location.href = "/login";
+    return;
+  }
+
+  async function load() {
+    try {
       const res = await getExpenses();
-      setExpenses(res.items);
-    }
 
-    load();
-  }, []);
+      console.log("EXPENSE RESPONSE:", res);
+
+      setExpenses(res.items);
+
+    } catch (err: any) {
+
+      console.log("EXPENSE ERROR:", err);
+
+      // optional redirect
+      if (
+        err.message === "Unauthorized" ||
+        err.message === "Refresh failed"
+      ) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+
+        window.location.href = "/login";
+      }
+    }
+  }
+
+  load();
+}, []);
 
   return (
     <div style={styles.container}>

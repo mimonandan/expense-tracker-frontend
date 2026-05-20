@@ -1,18 +1,18 @@
-import { apiRequest } from "@/lib/api";
+import api from "@/lib/axios";
 
 export async function loginUser(email: string, password: string) {
-  const res = await apiRequest("/auth/login", "POST", {
+  const res = await api.post("/auth/login", {
     email,
     password
   });
 
-  return res.data;
+  return res.data.data;
 }
 
 export async function logoutUser() {
   const refreshToken = localStorage.getItem("refreshToken");
 
-  return apiRequest("/auth/logout", "POST", {
+  return api.post("/auth/logout", {
     refreshToken
   });
 }
