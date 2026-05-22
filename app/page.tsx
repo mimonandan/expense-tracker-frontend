@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import Navbar from "@/components/navbar";
+
 import {
   getExpenses,
   createExpense,
@@ -9,24 +11,29 @@ import {
   updateExpense
 } from "@/services/expenseService";
 
-import { logout } from "@/lib/auth";
-
 export default function Home() {
 
   // =========================
   // STATES
   // =========================
 
-  const [expenses, setExpenses] = useState<any[]>([]);
+  const [expenses, setExpenses] =
+    useState<any[]>([]);
 
-  const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState("");
+  const [amount, setAmount] =
+    useState("");
 
-  const [loading, setLoading] = useState(false);
+  const [category, setCategory] =
+    useState("");
 
-  const [error, setError] = useState("");
+  const [loading, setLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
 
   // Edit states
+
   const [editingId, setEditingId] =
     useState<number | null>(null);
 
@@ -43,10 +50,13 @@ export default function Home() {
   useEffect(() => {
 
     const token =
-      localStorage.getItem("accessToken");
+      localStorage.getItem(
+        "accessToken"
+      );
 
     if (!token) {
-      window.location.href = "/login";
+      window.location.href =
+        "/login";
       return;
     }
 
@@ -62,13 +72,17 @@ export default function Home() {
 
     try {
 
-      const res = await getExpenses();
+      const res =
+        await getExpenses();
 
       setExpenses(res.items);
 
     } catch (err: any) {
 
-      console.log("LOAD ERROR:", err);
+      console.log(
+        "LOAD ERROR:",
+        err
+      );
 
       setError(
         err.response?.data?.error ||
@@ -90,6 +104,7 @@ export default function Home() {
     try {
 
       setLoading(true);
+
       setError("");
 
       await createExpense(
@@ -97,16 +112,19 @@ export default function Home() {
         category
       );
 
-      // refresh list
       await loadExpenses();
 
       // clear form
+
       setAmount("");
       setCategory("");
 
     } catch (err: any) {
 
-      console.log("ADD ERROR:", err);
+      console.log(
+        "ADD ERROR:",
+        err
+      );
 
       setError(
         err.response?.data?.error ||
@@ -128,6 +146,13 @@ export default function Home() {
     id: number
   ) {
 
+    const confirmed =
+      window.confirm(
+        "Are you sure you want to delete this expense?"
+      );
+
+    if (!confirmed) return;
+
     try {
 
       await deleteExpense(id);
@@ -136,7 +161,10 @@ export default function Home() {
 
     } catch (err: any) {
 
-      console.log("DELETE ERROR:", err);
+      console.log(
+        "DELETE ERROR:",
+        err
+      );
 
       setError(
         err.response?.data?.error ||
@@ -184,7 +212,10 @@ export default function Home() {
 
     } catch (err: any) {
 
-      console.log("UPDATE ERROR:", err);
+      console.log(
+        "UPDATE ERROR:",
+        err
+      );
 
       setError(
         err.response?.data?.error ||
@@ -199,183 +230,226 @@ export default function Home() {
 
   return (
 
-    <div style={styles.container}>
+    <div style={styles.page}>
 
-      {/* HEADER */}
+      {/* NAVBAR */}
 
-      <div style={styles.header}>
+      <Navbar />
 
-        <h2>Expenses</h2>
+      {/* CONTENT */}
 
-        <button
-          style={styles.logout}
-          onClick={logout}
-        >
-          Logout
-        </button>
+      <div style={styles.container}>
 
-      </div>
+        {/* ADD FORM */}
 
-      {/* FORM */}
-
-      <form
-        onSubmit={handleAddExpense}
-        style={styles.form}
-      >
-
-        <input
-          style={styles.input}
-          type="number"
-          placeholder="Amount"
-          value={amount}
-          onChange={(e) =>
-            setAmount(e.target.value)
+        <form
+          onSubmit={
+            handleAddExpense
           }
-        />
-
-        <input
-          style={styles.input}
-          type="text"
-          placeholder="Category"
-          value={category}
-          onChange={(e) =>
-            setCategory(e.target.value)
-          }
-        />
-
-        <button
-          style={styles.addButton}
-          type="submit"
+          style={styles.form}
         >
-          {loading
-            ? "Adding..."
-            : "Add Expense"}
-        </button>
 
-      </form>
+          <input
+            style={styles.input}
+            type="number"
+            placeholder="Amount"
+            value={amount}
+            onChange={(e) =>
+              setAmount(
+                e.target.value
+              )
+            }
+          />
 
-      {/* ERROR */}
+          <input
+            style={styles.input}
+            type="text"
+            placeholder="Category"
+            value={category}
+            onChange={(e) =>
+              setCategory(
+                e.target.value
+              )
+            }
+          />
 
-      {error && (
-        <p style={styles.error}>
-          {error}
-        </p>
-      )}
-
-      {/* EXPENSE LIST */}
-
-      <div style={styles.list}>
-
-        {expenses.map((e) => (
-
-          <div
-            key={e.id}
-            style={styles.card}
+          <button
+            style={styles.addButton}
+            type="submit"
           >
 
-            {editingId === e.id ? (
+            {loading
+              ? "Adding..."
+              : "Add Expense"}
 
-              // =========================
-              // EDIT MODE
-              // =========================
+          </button>
 
-              <div style={styles.editContainer}>
+        </form>
 
-                <input
-                  style={styles.input}
-                  type="number"
-                  value={editAmount}
-                  onChange={(ev) =>
-                    setEditAmount(
-                      ev.target.value
-                    )
-                  }
-                />
+        {/* ERROR */}
 
-                <input
-                  style={styles.input}
-                  type="text"
-                  value={editCategory}
-                  onChange={(ev) =>
-                    setEditCategory(
-                      ev.target.value
-                    )
-                  }
-                />
+        {error && (
+          <p style={styles.error}>
+            {error}
+          </p>
+        )}
 
-                <div style={styles.actionButtons}>
+        {/* EMPTY STATE */}
 
-                  <button
-                    style={styles.saveButton}
-                    onClick={() =>
-                      handleUpdate(e.id)
-                    }
-                  >
-                    Save
-                  </button>
+        {expenses.length === 0 && (
 
-                  <button
-                    style={styles.cancelButton}
-                    onClick={() =>
-                      setEditingId(null)
-                    }
-                  >
-                    Cancel
-                  </button>
-
-                </div>
-
-              </div>
-
-            ) : (
-
-              // =========================
-              // VIEW MODE
-              // =========================
-
-              <>
-
-                <div>
-
-                  <p style={styles.category}>
-                    {e.category}
-                  </p>
-
-                  <p style={styles.amount}>
-                    ₹{e.amount}
-                  </p>
-
-                </div>
-
-                <div style={styles.actionButtons}>
-
-                  <button
-                    style={styles.editButton}
-                    onClick={() =>
-                      startEdit(e)
-                    }
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    style={styles.deleteButton}
-                    onClick={() =>
-                      handleDelete(e.id)
-                    }
-                  >
-                    Delete
-                  </button>
-
-                </div>
-
-              </>
-
-            )}
-
+          <div style={styles.empty}>
+            No expenses found
           </div>
 
-        ))}
+        )}
+
+        {/* EXPENSE LIST */}
+
+        <div style={styles.list}>
+
+          {expenses.map((e) => (
+
+            <div
+              key={e.id}
+              style={styles.card}
+            >
+
+              {editingId === e.id ? (
+
+                // EDIT MODE
+
+                <div
+                  style={
+                    styles.editContainer
+                  }
+                >
+
+                  <input
+                    style={styles.input}
+                    type="number"
+                    value={editAmount}
+                    onChange={(ev) =>
+                      setEditAmount(
+                        ev.target.value
+                      )
+                    }
+                  />
+
+                  <input
+                    style={styles.input}
+                    type="text"
+                    value={editCategory}
+                    onChange={(ev) =>
+                      setEditCategory(
+                        ev.target.value
+                      )
+                    }
+                  />
+
+                  <div
+                    style={
+                      styles.actionButtons
+                    }
+                  >
+
+                    <button
+                      style={
+                        styles.saveButton
+                      }
+                      onClick={() =>
+                        handleUpdate(
+                          e.id
+                        )
+                      }
+                    >
+                      Save
+                    </button>
+
+                    <button
+                      style={
+                        styles.cancelButton
+                      }
+                      onClick={() =>
+                        setEditingId(
+                          null
+                        )
+                      }
+                    >
+                      Cancel
+                    </button>
+
+                  </div>
+
+                </div>
+
+              ) : (
+
+                // VIEW MODE
+
+                <>
+
+                  <div>
+
+                    <p
+                      style={
+                        styles.category
+                      }
+                    >
+                      {e.category}
+                    </p>
+
+                    <p
+                      style={
+                        styles.amount
+                      }
+                    >
+                      ₹{e.amount}
+                    </p>
+
+                  </div>
+
+                  <div
+                    style={
+                      styles.actionButtons
+                    }
+                  >
+
+                    <button
+                      style={
+                        styles.editButton
+                      }
+                      onClick={() =>
+                        startEdit(e)
+                      }
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      style={
+                        styles.deleteButton
+                      }
+                      onClick={() =>
+                        handleDelete(
+                          e.id
+                        )
+                      }
+                    >
+                      Delete
+                    </button>
+
+                  </div>
+
+                </>
+
+              )}
+
+            </div>
+
+          ))}
+
+        </div>
 
       </div>
 
@@ -389,27 +463,13 @@ export default function Home() {
 
 const styles: any = {
 
-  container: {
-    padding: 30,
+  page: {
     minHeight: "100vh",
     background: "#f5f6fa"
   },
 
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20
-  },
-
-  logout: {
-    padding: "10px 16px",
-    background: "#ff4757",
-    color: "#fff",
-    border: "none",
-    borderRadius: 6,
-    cursor: "pointer",
-    fontWeight: "bold"
+  container: {
+    padding: 30
   },
 
   form: {
@@ -439,6 +499,14 @@ const styles: any = {
   error: {
     color: "red",
     marginBottom: 20
+  },
+
+  empty: {
+    background: "#fff",
+    padding: 30,
+    borderRadius: 10,
+    textAlign: "center",
+    color: "#777"
   },
 
   list: {

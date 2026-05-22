@@ -1,12 +1,27 @@
-import { logoutUser } from "../services/authService";
+import {
+  logoutUser
+} from "@/services/authService";
 
 export async function logout() {
+
   try {
-    await logoutUser(); // backend logout
+
+    await logoutUser();
+
   } catch (e) {}
 
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
-  
-  window.location.href = "/login";
+  localStorage.removeItem(
+    "accessToken"
+  );
+
+  localStorage.removeItem(
+    "refreshToken"
+  );
+
+  localStorage.removeItem(
+    "userName"
+  );
+
+  window.location.href =
+    "/login";
 }

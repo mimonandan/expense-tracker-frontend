@@ -3,14 +3,17 @@
 import { useState } from "react";
 
 import {
-  loginUser
+  registerUser
 } from "@/services/authService";
 
-export default function LoginPage() {
+export default function RegisterPage() {
 
   // =========================
   // STATES
   // =========================
+
+  const [name, setName] =
+    useState("");
 
   const [email, setEmail] =
     useState("");
@@ -24,11 +27,14 @@ export default function LoginPage() {
   const [error, setError] =
     useState("");
 
+  const [success, setSuccess] =
+    useState("");
+
   // =========================
-  // LOGIN
+  // REGISTER
   // =========================
 
-  async function handleLogin(
+  async function handleRegister(
     e: any
   ) {
 
@@ -39,36 +45,27 @@ export default function LoginPage() {
       setLoading(true);
 
       setError("");
+      setSuccess("");
 
-      const data =
-        await loginUser(
-          email,
-          password
-        );
-
-      // store tokens
-      localStorage.setItem(
-        "accessToken",
-        data.accessToken
+      await registerUser(
+        name,
+        email,
+        password
       );
 
-      localStorage.setItem(
-        "refreshToken",
-        data.refreshToken
-      );
-      // store user info
-      localStorage.setItem(
-        "userName",
-        data.name
+      setSuccess(
+        "Registration successful! Redirecting to login..."
       );
 
-      // redirect
-      window.location.href = "/";
+      // redirect after success
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 1500);
 
     } catch (err: any) {
 
       console.log(
-        "LOGIN ERROR:",
+        "REGISTER ERROR:",
         err
       );
 
@@ -94,11 +91,23 @@ export default function LoginPage() {
 
       <div style={styles.card}>
 
-        <h1 style={styles.title}>Login</h1>
+        <h2>Create Account</h2>
 
         <form
-          onSubmit={handleLogin}
+          onSubmit={handleRegister}
         >
+
+          {/* NAME */}
+
+          <input
+            style={styles.input}
+            type="text"
+            placeholder="Name"
+            value={name}
+            onChange={(e) =>
+              setName(e.target.value)
+            }
+          />
 
           {/* EMAIL */}
 
@@ -132,8 +141,8 @@ export default function LoginPage() {
           >
 
             {loading
-              ? "Logging in..."
-              : "Login"}
+              ? "Creating..."
+              : "Register"}
 
           </button>
 
@@ -147,20 +156,28 @@ export default function LoginPage() {
           </p>
         )}
 
-        {/* REGISTER LINK */}
+        {/* SUCCESS */}
+
+        {success && (
+          <p style={styles.success}>
+            {success}
+          </p>
+        )}
+
+        {/* LOGIN LINK */}
 
         <p style={styles.linkText}>
 
-          Don't have an account?
+          Already have an account?
 
           <span
             style={styles.link}
             onClick={() =>
               window.location.href =
-                "/register"
+                "/login"
             }
           >
-            {" "}Register
+            {" "}Login
           </span>
 
         </p>
@@ -219,6 +236,11 @@ const styles: any = {
     marginTop: 15
   },
 
+  success: {
+    color: "green",
+    marginTop: 15
+  },
+
   linkText: {
     marginTop: 20,
     textAlign: "center"
@@ -228,9 +250,5 @@ const styles: any = {
     color: "#0070f3",
     cursor: "pointer",
     fontWeight: "bold"
-  },
-  title: {
-    textAlign: "center",
-    marginBottom: 20
   }
 };
