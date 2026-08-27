@@ -335,8 +335,8 @@ const styles: any = {
   },
 
   forgotPassword: {
-    textAlign: "right",
-    marginTop: -8,
+    textAlign: "center",
+    marginTop: 8,
     marginBottom: 18
   },
 
