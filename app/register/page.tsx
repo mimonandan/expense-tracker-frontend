@@ -167,11 +167,6 @@ export default function RegisterPage() {
     }
   }
 
-
-  // =========================
-  // UI
-  // =========================
-
   return (
 
     <div style={styles.container}>
@@ -302,11 +297,6 @@ export default function RegisterPage() {
     </div>
   );
 }
-
-
-// =========================
-// STYLES
-// =========================
 
 const styles: any = {
 

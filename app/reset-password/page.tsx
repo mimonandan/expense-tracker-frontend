@@ -177,11 +177,6 @@ export default function ResetPasswordPage() {
     }
   }
 
-
-  // =========================
-  // UI
-  // =========================
-
   return (
 
     <div style={styles.container}>
@@ -329,11 +324,6 @@ export default function ResetPasswordPage() {
     </div>
   );
 }
-
-
-// =========================
-// STYLES
-// =========================
 
 const styles: any = {
 

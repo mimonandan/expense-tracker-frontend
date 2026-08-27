@@ -49,8 +49,6 @@ export default function LoginPage() {
     message: string
   ) {
 
-    // Clear any previous timer
-
     if (errorTimer.current) {
 
       clearTimeout(
@@ -81,10 +79,6 @@ export default function LoginPage() {
   ) {
 
     e.preventDefault();
-
-    // Don't immediately clear the existing
-    // error here because it should remain
-    // visible for its full 3 seconds.
 
     if (!email.trim()) {
 

@@ -57,13 +57,6 @@ export default function ForgotPasswordPage() {
         "Password reset request created."
       );
 
-      /*
-       * DEVELOPMENT ONLY
-       *
-       * Backend currently returns the
-       * reset token because we don't have
-       * email delivery implemented yet.
-       */
 
       if (result.data?.resetToken) {
         setResetToken(
@@ -90,11 +83,6 @@ export default function ForgotPasswordPage() {
 
     }
   }
-
-
-  // =========================
-  // UI
-  // =========================
 
   return (
 
@@ -237,11 +225,6 @@ export default function ForgotPasswordPage() {
     </div>
   );
 }
-
-
-// =========================
-// STYLES
-// =========================
 
 const styles: any = {
 
