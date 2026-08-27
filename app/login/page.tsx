@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState
+} from "react";
 
 import {
   loginUser
@@ -25,48 +29,46 @@ export default function LoginPage() {
       null
     );
 
-
-  // =========================
-  // CLEANUP TIMER
-  // =========================
-
   useEffect(() => {
 
     return () => {
 
       if (errorTimer.current) {
+
         clearTimeout(
           errorTimer.current
         );
+
       }
 
     };
 
   }, []);
 
-
-  // =========================
-  // SHOW ERROR
-  // =========================
-
   function showError(
     message: string
   ) {
 
-    setError(message);
+    // Clear any previous timer
 
     if (errorTimer.current) {
+
       clearTimeout(
         errorTimer.current
       );
+
     }
+
+    setError(message);
 
     errorTimer.current =
       setTimeout(() => {
 
         setError("");
 
-      }, 5000);
+        errorTimer.current = null;
+
+      }, 3000);
   }
 
 
@@ -80,19 +82,25 @@ export default function LoginPage() {
 
     e.preventDefault();
 
-    setError("");
+    // Don't immediately clear the existing
+    // error here because it should remain
+    // visible for its full 3 seconds.
 
     if (!email.trim()) {
+
       showError(
         "Email is required"
       );
+
       return;
     }
 
     if (!password) {
+
       showError(
         "Password is required"
       );
+
       return;
     }
 
@@ -106,7 +114,9 @@ export default function LoginPage() {
           password
         );
 
-      // Store tokens
+      // =========================
+      // STORE TOKENS
+      // =========================
 
       localStorage.setItem(
         "accessToken",
@@ -118,8 +128,6 @@ export default function LoginPage() {
         data.refreshToken
       );
 
-      // Store user information
-
       localStorage.setItem(
         "userName",
         data.name
@@ -130,10 +138,7 @@ export default function LoginPage() {
         data.role
       );
 
-      // Redirect
-
-      window.location.href =
-        "/";
+      window.location.href = "/";
 
     } catch (err: any) {
 
@@ -142,10 +147,13 @@ export default function LoginPage() {
         err
       );
 
-      showError(
+      const errorMessage =
         err.response?.data?.error ||
         err.message ||
-        "Login failed"
+        "Login failed";
+
+      showError(
+        errorMessage
       );
 
     } finally {
@@ -154,11 +162,6 @@ export default function LoginPage() {
 
     }
   }
-
-
-  // =========================
-  // UI
-  // =========================
 
   return (
 
@@ -173,6 +176,7 @@ export default function LoginPage() {
         <p style={styles.subtitle}>
           Login to manage your expenses.
         </p>
+
 
         <form
           onSubmit={handleLogin}
@@ -196,6 +200,7 @@ export default function LoginPage() {
             }
           />
 
+
           {/* PASSWORD */}
 
           <label style={styles.label}>
@@ -213,6 +218,24 @@ export default function LoginPage() {
               )
             }
           />
+
+
+          {/* FORGOT PASSWORD */}
+
+          <p style={styles.forgotPassword}>
+
+            <span
+              style={styles.link}
+              onClick={() =>
+                window.location.href =
+                  "/forgot-password"
+              }
+            >
+              Forgot password?
+            </span>
+
+          </p>
+
 
           {/* LOGIN BUTTON */}
 
@@ -234,25 +257,17 @@ export default function LoginPage() {
 
         </form>
 
-        <p style={styles.forgotPassword}>
-  <span
-    style={styles.link}
-    onClick={() =>
-      window.location.href =
-        "/forgot-password"
-    }
-  >
-    Forgot password?
-  </span>
-</p>
 
         {/* ERROR */}
 
         {error && (
+
           <div style={styles.error}>
             {error}
           </div>
+
         )}
+
 
         {/* REGISTER */}
 
@@ -277,11 +292,6 @@ export default function LoginPage() {
     </div>
   );
 }
-
-
-// =========================
-// STYLES
-// =========================
 
 const styles: any = {
 
@@ -330,6 +340,12 @@ const styles: any = {
     fontSize: 14
   },
 
+  forgotPassword: {
+    textAlign: "right",
+    marginTop: -8,
+    marginBottom: 18
+  },
+
   button: {
     width: "100%",
     padding: 12,
@@ -354,10 +370,11 @@ const styles: any = {
 
   error: {
     marginTop: 15,
-    padding: 10,
+    padding: 12,
     borderRadius: 6,
     background: "#ffe5e5",
-    color: "#d63031"
+    color: "#d63031",
+    fontWeight: "500"
   },
 
   linkText: {
@@ -370,11 +387,5 @@ const styles: any = {
     color: "#0070f3",
     cursor: "pointer",
     fontWeight: "bold"
-  },
-
-  forgotPassword: {
-    textAlign: "center",
-    marginTop: 4,
-    marginBottom: 18
-}
+  }
 };
