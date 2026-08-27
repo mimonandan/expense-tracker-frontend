@@ -1,17 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 import {
-  loginUser
+  forgotPassword
 } from "@/services/authService";
 
-export default function LoginPage() {
+export default function ForgotPasswordPage() {
 
   const [email, setEmail] =
-    useState("");
-
-  const [password, setPassword] =
     useState("");
 
   const [loading, setLoading] =
@@ -20,78 +17,30 @@ export default function LoginPage() {
   const [error, setError] =
     useState("");
 
-  const errorTimer =
-    useRef<ReturnType<typeof setTimeout> | null>(
-      null
-    );
+  const [success, setSuccess] =
+    useState("");
+
+  const [resetToken, setResetToken] =
+    useState("");
 
 
   // =========================
-  // CLEANUP TIMER
+  // SUBMIT
   // =========================
 
-  useEffect(() => {
-
-    return () => {
-
-      if (errorTimer.current) {
-        clearTimeout(
-          errorTimer.current
-        );
-      }
-
-    };
-
-  }, []);
-
-
-  // =========================
-  // SHOW ERROR
-  // =========================
-
-  function showError(
-    message: string
-  ) {
-
-    setError(message);
-
-    if (errorTimer.current) {
-      clearTimeout(
-        errorTimer.current
-      );
-    }
-
-    errorTimer.current =
-      setTimeout(() => {
-
-        setError("");
-
-      }, 5000);
-  }
-
-
-  // =========================
-  // LOGIN
-  // =========================
-
-  async function handleLogin(
+  async function handleSubmit(
     e: React.FormEvent<HTMLFormElement>
   ) {
 
     e.preventDefault();
 
     setError("");
+    setSuccess("");
+    setResetToken("");
 
     if (!email.trim()) {
-      showError(
+      setError(
         "Email is required"
-      );
-      return;
-    }
-
-    if (!password) {
-      showError(
-        "Password is required"
       );
       return;
     }
@@ -100,52 +49,39 @@ export default function LoginPage() {
 
       setLoading(true);
 
-      const data =
-        await loginUser(
-          email,
-          password
+      const result =
+        await forgotPassword(email);
+
+      setSuccess(
+        result.data?.message ||
+        "Password reset request created."
+      );
+
+      /*
+       * DEVELOPMENT ONLY
+       *
+       * Backend currently returns the
+       * reset token because we don't have
+       * email delivery implemented yet.
+       */
+
+      if (result.data?.resetToken) {
+        setResetToken(
+          result.data.resetToken
         );
-
-      // Store tokens
-
-      localStorage.setItem(
-        "accessToken",
-        data.accessToken
-      );
-
-      localStorage.setItem(
-        "refreshToken",
-        data.refreshToken
-      );
-
-      // Store user information
-
-      localStorage.setItem(
-        "userName",
-        data.name
-      );
-
-      localStorage.setItem(
-        "userRole",
-        data.role
-      );
-
-      // Redirect
-
-      window.location.href =
-        "/";
+      }
 
     } catch (err: any) {
 
       console.log(
-        "LOGIN ERROR:",
+        "FORGOT PASSWORD ERROR:",
         err
       );
 
-      showError(
+      setError(
         err.response?.data?.error ||
         err.message ||
-        "Login failed"
+        "Unable to process request"
       );
 
     } finally {
@@ -167,18 +103,18 @@ export default function LoginPage() {
       <div style={styles.card}>
 
         <h2 style={styles.title}>
-          Welcome Back
+          Forgot Password?
         </h2>
 
         <p style={styles.subtitle}>
-          Login to manage your expenses.
+          Enter your registered email and
+          we'll help you reset your password.
         </p>
 
-        <form
-          onSubmit={handleLogin}
-        >
 
-          {/* EMAIL */}
+        <form
+          onSubmit={handleSubmit}
+        >
 
           <label style={styles.label}>
             Email
@@ -190,31 +126,9 @@ export default function LoginPage() {
             placeholder="Enter your email"
             value={email}
             onChange={(e) =>
-              setEmail(
-                e.target.value
-              )
+              setEmail(e.target.value)
             }
           />
-
-          {/* PASSWORD */}
-
-          <label style={styles.label}>
-            Password
-          </label>
-
-          <input
-            style={styles.input}
-            type="password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) =>
-              setPassword(
-                e.target.value
-              )
-            }
-          />
-
-          {/* LOGIN BUTTON */}
 
           <button
             style={
@@ -227,47 +141,93 @@ export default function LoginPage() {
           >
 
             {loading
-              ? "Logging in..."
-              : "Login"}
+              ? "Processing..."
+              : "Reset Password"}
 
           </button>
 
         </form>
 
-        <p style={styles.forgotPassword}>
-  <span
-    style={styles.link}
-    onClick={() =>
-      window.location.href =
-        "/forgot-password"
-    }
-  >
-    Forgot password?
-  </span>
-</p>
 
         {/* ERROR */}
 
         {error && (
+
           <div style={styles.error}>
             {error}
           </div>
+
         )}
 
-        {/* REGISTER */}
+
+        {/* SUCCESS */}
+
+        {success && (
+
+          <div style={styles.success}>
+            {success}
+          </div>
+
+        )}
+
+
+        {/* DEVELOPMENT RESET TOKEN */}
+
+        {resetToken && (
+
+          <div style={styles.tokenBox}>
+
+            <p style={styles.tokenTitle}>
+              Development Reset Token
+            </p>
+
+            <p style={styles.tokenWarning}>
+              This is shown only because email
+              delivery is not configured yet.
+            </p>
+
+            <textarea
+              style={styles.token}
+              value={resetToken}
+              readOnly
+            />
+
+            <button
+              style={styles.resetButton}
+              onClick={() => {
+
+                sessionStorage.setItem(
+                  "resetToken",
+                  resetToken
+                );
+
+                window.location.href =
+                  "/reset-password";
+
+              }}
+            >
+              Continue to Reset Password
+            </button>
+
+          </div>
+
+        )}
+
+
+        {/* BACK TO LOGIN */}
 
         <p style={styles.linkText}>
 
-          Don't have an account?
+          Remember your password?
 
           <span
             style={styles.link}
             onClick={() =>
               window.location.href =
-                "/register"
+                "/login"
             }
           >
-            {" "}Register
+            {" "}Login
           </span>
 
         </p>
@@ -295,7 +255,7 @@ const styles: any = {
   },
 
   card: {
-    width: 380,
+    width: 400,
     background: "#fff",
     padding: 32,
     borderRadius: 14,
@@ -310,6 +270,7 @@ const styles: any = {
 
   subtitle: {
     color: "#666",
+    lineHeight: 1.5,
     marginBottom: 25
   },
 
@@ -360,6 +321,55 @@ const styles: any = {
     color: "#d63031"
   },
 
+  success: {
+    marginTop: 15,
+    padding: 10,
+    borderRadius: 6,
+    background: "#e5f8ed",
+    color: "#16834b"
+  },
+
+  tokenBox: {
+    marginTop: 20,
+    padding: 15,
+    borderRadius: 8,
+    background: "#fff8e1",
+    border: "1px solid #f0c36d"
+  },
+
+  tokenTitle: {
+    margin: 0,
+    fontWeight: "bold"
+  },
+
+  tokenWarning: {
+    fontSize: 12,
+    color: "#856404"
+  },
+
+  token: {
+    width: "100%",
+    boxSizing: "border-box",
+    minHeight: 80,
+    padding: 10,
+    marginBottom: 10,
+    borderRadius: 5,
+    border: "1px solid #ccc",
+    fontSize: 12,
+    resize: "none"
+  },
+
+  resetButton: {
+    width: "100%",
+    padding: 10,
+    background: "#2ed573",
+    color: "#fff",
+    border: "none",
+    borderRadius: 6,
+    cursor: "pointer",
+    fontWeight: "bold"
+  },
+
   linkText: {
     marginTop: 22,
     textAlign: "center",
@@ -370,11 +380,5 @@ const styles: any = {
     color: "#0070f3",
     cursor: "pointer",
     fontWeight: "bold"
-  },
-
-  forgotPassword: {
-    textAlign: "center",
-    marginTop: 4,
-    marginBottom: 18
-}
+  }
 };

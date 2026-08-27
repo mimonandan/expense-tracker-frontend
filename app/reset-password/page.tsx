@@ -1,20 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import {
+  useEffect,
+  useState
+} from "react";
 
 import {
-  registerUser
+  resetPassword
 } from "@/services/authService";
 
-export default function RegisterPage() {
+export default function ResetPasswordPage() {
 
-  const [name, setName] =
-    useState("");
-
-  const [email, setEmail] =
+  const [resetToken, setResetToken] =
     useState("");
 
   const [password, setPassword] =
+    useState("");
+
+  const [confirmPassword, setConfirmPassword] =
     useState("");
 
   const [loading, setLoading] =
@@ -25,6 +28,25 @@ export default function RegisterPage() {
 
   const [success, setSuccess] =
     useState("");
+
+
+  // =========================
+  // LOAD TOKEN
+  // =========================
+
+  useEffect(() => {
+
+    const token =
+      sessionStorage.getItem(
+        "resetToken"
+      );
+
+    if (token) {
+      setResetToken(token);
+    }
+
+  }, []);
+
 
   // =========================
   // PASSWORD VALIDATION
@@ -63,10 +85,10 @@ export default function RegisterPage() {
 
 
   // =========================
-  // REGISTER
+  // RESET PASSWORD
   // =========================
 
-  async function handleRegister(
+  async function handleReset(
     e: React.FormEvent<HTMLFormElement>
   ) {
 
@@ -75,46 +97,12 @@ export default function RegisterPage() {
     setError("");
     setSuccess("");
 
-    // Name validation
-
-    if (!name.trim()) {
+    if (!resetToken.trim()) {
       setError(
-        "Name is required"
+        "Reset token is required"
       );
       return;
     }
-
-    if (name.trim().length < 2) {
-      setError(
-        "Name must be at least 2 characters long"
-      );
-      return;
-    }
-
-    // Email validation
-
-    if (!email.trim()) {
-      setError(
-        "Email is required"
-      );
-      return;
-    }
-
-    const emailRegex =
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (
-      !emailRegex.test(
-        email.trim()
-      )
-    ) {
-      setError(
-        "Please enter a valid email address"
-      );
-      return;
-    }
-
-    // Password validation
 
     const passwordError =
       validatePassword(password);
@@ -124,40 +112,62 @@ export default function RegisterPage() {
       return;
     }
 
+    if (
+      password !== confirmPassword
+    ) {
+      setError(
+        "Passwords do not match"
+      );
+      return;
+    }
+
     try {
 
       setLoading(true);
 
-      await registerUser(
-        name,
-        email,
-        password
-      );
+      const result =
+        await resetPassword(
+          resetToken.trim(),
+          password
+        );
 
       setSuccess(
-        "Registration successful! Redirecting to login..."
+        result.data?.message ||
+        "Password reset successfully."
       );
 
-      setName("");
-      setEmail("");
+      // Remove one-time reset token
+
+      sessionStorage.removeItem(
+        "resetToken"
+      );
+
+      // Clear fields
+
+      setResetToken("");
       setPassword("");
+      setConfirmPassword("");
+
+      // Redirect after 2 seconds
 
       setTimeout(() => {
+
         window.location.href =
           "/login";
-      }, 1500);
+
+      }, 2000);
 
     } catch (err: any) {
 
       console.log(
-        "REGISTER ERROR:",
+        "RESET PASSWORD ERROR:",
         err
       );
 
       setError(
         err.response?.data?.error ||
         err.message ||
-        "Registration failed"
+        "Unable to reset password"
       );
 
     } finally {
@@ -179,62 +189,52 @@ export default function RegisterPage() {
       <div style={styles.card}>
 
         <h2 style={styles.title}>
-          Create Account
+          Reset Password
         </h2>
 
         <p style={styles.subtitle}>
-          Start managing your expenses smarter.
+          Create a new strong password for
+          your account.
         </p>
 
+
         <form
-          onSubmit={handleRegister}
+          onSubmit={handleReset}
         >
 
-          {/* NAME */}
+          {/* RESET TOKEN */}
 
           <label style={styles.label}>
-            Name
+            Reset Token
           </label>
 
-          <input
-            style={styles.input}
-            type="text"
-            placeholder="Enter your name"
-            value={name}
+          <textarea
+            style={styles.tokenInput}
+            placeholder="Enter reset token"
+            value={resetToken}
             onChange={(e) =>
-              setName(e.target.value)
+              setResetToken(
+                e.target.value
+              )
             }
           />
 
-          {/* EMAIL */}
-
-          <label style={styles.label}>
-            Email
-          </label>
-
-          <input
-            style={styles.input}
-            type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) =>
-              setEmail(e.target.value)
-            }
-          />
 
           {/* PASSWORD */}
 
           <label style={styles.label}>
-            Password
+            New Password
           </label>
 
           <input
             style={styles.input}
             type="password"
-            placeholder="Create a strong password"
+            placeholder="Enter new password"
             value={password}
             onChange={(e) =>
-              setPassword(e.target.value)
+              setPassword(
+                e.target.value
+              )
             }
           />
 
@@ -242,6 +242,26 @@ export default function RegisterPage() {
             Minimum 8 characters with uppercase,
             lowercase, number and special character.
           </p>
+
+
+          {/* CONFIRM PASSWORD */}
+
+          <label style={styles.label}>
+            Confirm Password
+          </label>
+
+          <input
+            style={styles.input}
+            type="password"
+            placeholder="Confirm new password"
+            value={confirmPassword}
+            onChange={(e) =>
+              setConfirmPassword(
+                e.target.value
+              )
+            }
+          />
+
 
           {/* BUTTON */}
 
@@ -256,34 +276,41 @@ export default function RegisterPage() {
           >
 
             {loading
-              ? "Creating..."
-              : "Create Account"}
+              ? "Resetting..."
+              : "Reset Password"}
 
           </button>
 
         </form>
 
+
         {/* ERROR */}
 
         {error && (
+
           <div style={styles.error}>
             {error}
           </div>
+
         )}
+
 
         {/* SUCCESS */}
 
         {success && (
+
           <div style={styles.success}>
             {success}
           </div>
+
         )}
+
 
         {/* LOGIN */}
 
         <p style={styles.linkText}>
 
-          Already have an account?
+          Remember your password?
 
           <span
             style={styles.link}
@@ -320,7 +347,7 @@ const styles: any = {
   },
 
   card: {
-    width: 380,
+    width: 400,
     background: "#fff",
     padding: 32,
     borderRadius: 14,
@@ -335,6 +362,7 @@ const styles: any = {
 
   subtitle: {
     color: "#666",
+    lineHeight: 1.5,
     marginBottom: 25
   },
 
@@ -353,6 +381,18 @@ const styles: any = {
     borderRadius: 6,
     border: "1px solid #ccc",
     fontSize: 14
+  },
+
+  tokenInput: {
+    width: "100%",
+    boxSizing: "border-box",
+    minHeight: 90,
+    padding: 10,
+    marginBottom: 16,
+    borderRadius: 6,
+    border: "1px solid #ccc",
+    fontSize: 12,
+    resize: "vertical"
   },
 
   passwordHint: {
