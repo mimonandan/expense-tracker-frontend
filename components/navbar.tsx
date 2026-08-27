@@ -1,68 +1,249 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState
+} from "react";
 
-import { logout } from "@/lib/auth";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Navbar() {
 
-  const [userName, setUserName] =
-    useState("");
+  const {
+    user,
+    logout
+  } = useAuth();
 
-  const [showMenu, setShowMenu] =
+  const [open, setOpen] =
     useState(false);
+
+  const dropdownRef =
+    useRef<HTMLDivElement | null>(
+      null
+    );
+
+
+  // =========================
+  // CLOSE DROPDOWN
+  // WHEN CLICKING OUTSIDE
+  // =========================
 
   useEffect(() => {
 
-    const name =
-      localStorage.getItem("userName");
+    function handleClickOutside(
+      event: MouseEvent
+    ) {
 
-    if (name) {
-      setUserName(name);
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(
+          event.target as Node
+        )
+      ) {
+
+        setOpen(false);
+
+      }
     }
+
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
+
+    return () => {
+
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
+
+    };
 
   }, []);
 
+
+  // =========================
+  // LOGOUT
+  // =========================
+
+  async function handleLogout() {
+
+    setOpen(false);
+
+    await logout();
+  }
+
+
+  // =========================
+  // USER INITIAL
+  // =========================
+
+  const initial =
+    user?.name
+      ? user.name
+          .charAt(0)
+          .toUpperCase()
+      : "U";
+
+
+  // =========================
+  // UI
+  // =========================
+
   return (
 
-    <div style={styles.navbar}>
+    <nav style={styles.navbar}>
 
-      {/* LEFT SECTION */}
+      {/* =========================
+          BRAND
+      ========================== */}
 
-      <div>
+      <div
+        style={styles.brand}
+        onClick={() =>
+          window.location.href =
+            "/"
+        }
+      >
 
-        <h1 style={styles.logo}>
-          💰 ExpenseFlow
-        </h1>
+        <div style={styles.logo}>
+          ₹
+        </div>
 
-        <p style={styles.tagline}>
-          Track smarter. Spend better.
-        </p>
+        <div>
+
+          <div style={styles.brandName}>
+            ExpenseFlow
+          </div>
+
+          <div style={styles.brandTagline}>
+            Smart expense tracking
+          </div>
+
+        </div>
 
       </div>
 
-      {/* USER MENU */}
 
-      <div style={styles.userSection}>
+      {/* =========================
+          USER MENU
+      ========================== */}
+
+      <div
+        style={styles.userContainer}
+        ref={dropdownRef}
+      >
 
         <button
           style={styles.userButton}
           onClick={() =>
-            setShowMenu(!showMenu)
+            setOpen(!open)
           }
         >
-          {userName} ▼
+
+          <div style={styles.avatar}>
+            {initial}
+          </div>
+
+          <div style={styles.userInfo}>
+
+            <span style={styles.userName}>
+              {user?.name || "User"}
+            </span>
+
+            <span style={styles.userRole}>
+              {user?.role || "USER"}
+            </span>
+
+          </div>
+
+          <span
+            style={{
+              ...styles.arrow,
+              transform: open
+                ? "rotate(180deg)"
+                : "rotate(0deg)"
+            }}
+          >
+            ▼
+          </span>
+
         </button>
 
-        {showMenu && (
+
+        {/* =========================
+            DROPDOWN
+        ========================== */}
+
+        {open && (
 
           <div style={styles.dropdown}>
 
+            {/* USER DETAILS */}
+
+            <div
+              style={
+                styles.dropdownHeader
+              }
+            >
+
+              <div
+                style={
+                  styles.dropdownAvatar
+                }
+              >
+                {initial}
+              </div>
+
+              <div>
+
+                <div
+                  style={
+                    styles.dropdownName
+                  }
+                >
+                  {user?.name || "User"}
+                </div>
+
+                <div
+                  style={
+                    styles.dropdownRole
+                  }
+                >
+                  {user?.role || "USER"}
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div
+              style={
+                styles.divider
+              }
+            />
+
+
+            {/* LOGOUT */}
+
             <button
               style={styles.logoutButton}
-              onClick={logout}
+              onClick={
+                handleLogout
+              }
             >
-              Logout
+
+              <span>
+                🚪
+              </span>
+
+              <span>
+                Logout
+              </span>
+
             </button>
 
           </div>
@@ -71,73 +252,189 @@ export default function Navbar() {
 
       </div>
 
-    </div>
+    </nav>
   );
 }
+
+
+// =========================
+// STYLES
+// =========================
 
 const styles: any = {
 
   navbar: {
+    height: 70,
+    padding: "0 30px",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    background: "#fff",
-    padding: "18px 30px",
-    boxShadow:
-      "0 2px 12px rgba(0,0,0,0.08)",
-    marginBottom: 20
+    background: "#ffffff",
+    borderBottom:
+      "1px solid #e5e7eb",
+    boxSizing: "border-box"
+  },
+
+  // =========================
+  // BRAND
+  // =========================
+
+  brand: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    cursor: "pointer",
+    userSelect: "none"
   },
 
   logo: {
-    margin: 0,
-    fontSize: 30,
-    fontWeight: "bold",
-    color: "#0070f3"
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    background: "#0070f3",
+    color: "#ffffff",
+    fontSize: 22,
+    fontWeight: 800
   },
 
-  tagline: {
-    margin: 0,
-    marginTop: 4,
-    color: "#666",
-    fontSize: 14,
-    fontStyle: "italic",
-    paddingLeft: 8
+  brandName: {
+    fontSize: 19,
+    fontWeight: 800,
+    color: "#111827"
   },
 
-  userSection: {
+  brandTagline: {
+    fontSize: 11,
+    color: "#6b7280",
+    marginTop: 1
+  },
+
+  // =========================
+  // USER
+  // =========================
+
+  userContainer: {
     position: "relative"
   },
 
   userButton: {
-    padding: "10px 16px",
-    borderRadius: 8,
+    display: "flex",
+    alignItems: "center",
+    gap: 9,
+    padding: "6px 8px",
+    background: "transparent",
     border: "none",
-    background: "#0070f3",
-    color: "#fff",
-    cursor: "pointer",
-    fontWeight: "bold",
-    fontSize: 14
+    borderRadius: 8,
+    cursor: "pointer"
   },
+
+  avatar: {
+    width: 38,
+    height: 38,
+    borderRadius: "50%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    background: "#0070f3",
+    color: "#ffffff",
+    fontWeight: 700,
+    fontSize: 16
+  },
+
+  userInfo: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start"
+  },
+
+  userName: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: "#111827"
+  },
+
+  userRole: {
+    fontSize: 11,
+    color: "#6b7280",
+    marginTop: 2
+  },
+
+  arrow: {
+    fontSize: 9,
+    color: "#6b7280",
+    transition:
+      "transform 0.2s ease"
+  },
+
+  // =========================
+  // DROPDOWN
+  // =========================
 
   dropdown: {
     position: "absolute",
+    top: 52,
     right: 0,
-    top: 50,
-    background: "#fff",
-    borderRadius: 8,
+    width: 220,
+    background: "#ffffff",
+    borderRadius: 10,
     boxShadow:
-      "0 4px 12px rgba(0,0,0,0.12)",
+      "0 8px 25px rgba(0,0,0,0.12)",
+    border:
+      "1px solid #e5e7eb",
     overflow: "hidden",
-    minWidth: 140
+    zIndex: 1000
+  },
+
+  dropdownHeader: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    padding: 15
+  },
+
+  dropdownAvatar: {
+    width: 38,
+    height: 38,
+    borderRadius: "50%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    background: "#0070f3",
+    color: "#ffffff",
+    fontWeight: 700
+  },
+
+  dropdownName: {
+    fontWeight: 700,
+    fontSize: 14,
+    color: "#111827"
+  },
+
+  dropdownRole: {
+    marginTop: 3,
+    fontSize: 12,
+    color: "#6b7280"
+  },
+
+  divider: {
+    height: 1,
+    background: "#e5e7eb"
   },
 
   logoutButton: {
-    padding: "12px 20px",
-    border: "none",
-    background: "#fff",
-    cursor: "pointer",
     width: "100%",
-    textAlign: "left",
-    fontSize: 14
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    padding: 13,
+    background: "#ffffff",
+    border: "none",
+    cursor: "pointer",
+    color: "#dc2626",
+    fontSize: 14,
+    textAlign: "left"
   }
 };

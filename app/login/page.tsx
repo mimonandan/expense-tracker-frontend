@@ -12,6 +12,10 @@ import {
 
 export default function LoginPage() {
 
+//   console.log(
+//   process.env.NEXT_PUBLIC_API_URL
+// );
+
   const [email, setEmail] =
     useState("");
 
@@ -132,6 +136,11 @@ export default function LoginPage() {
         data.role
       );
 
+      localStorage.setItem(
+        "userId",
+        data.userId.toString()
+      );
+
       window.location.href = "/";
 
     } catch (err: any) {
@@ -158,6 +167,7 @@ export default function LoginPage() {
   }
 
   return (
+    
 
     <div style={styles.container}>
 
